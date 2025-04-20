@@ -10,7 +10,7 @@ class AboutPatternMatching < Neo::Koan
       end
     rescue Exception => ex
       # What exception has been caught?
-      assert_equal __, ex.class
+      assert_equal NoMatchingPatternError, ex.class
     end
   end
 
@@ -22,7 +22,7 @@ class AboutPatternMatching < Neo::Koan
      :no_match
     end
 
-    assert_equal __, result
+    assert_equal :no_match, result
   end
 
   # ------------------------------------------------------------------
@@ -41,10 +41,10 @@ class AboutPatternMatching < Neo::Koan
   end
 
   def test_value_pattern
-    assert_equal __, value_pattern(0)
-    assert_equal __, value_pattern(5)
-    assert_equal __, value_pattern(100)
-    assert_equal __, value_pattern('Not a Number!')
+    assert_equal :match_exact_value, value_pattern(0)
+    assert_equal :match_in_range, value_pattern(5)
+    assert_equal :match_with_class, value_pattern(100)
+    assert_equal :no_match, value_pattern('Not a Number!')
   end
 
   # ------------------------------------------------------------------
@@ -52,7 +52,7 @@ class AboutPatternMatching < Neo::Koan
 
   def variable_pattern_with_binding(variable)
     case 0
-    in variable
+    in variable # variable присваивается 0
       variable
     else
       :no_match
@@ -60,7 +60,7 @@ class AboutPatternMatching < Neo::Koan
   end
 
   def test_variable_pattern_with_binding
-    assert_equal __, variable_pattern_with_binding(1)
+    assert_equal 0, variable_pattern_with_binding(1)
   end
 
   # ------------------------------------------------------------------
@@ -77,7 +77,7 @@ class AboutPatternMatching < Neo::Koan
   end
 
   def test_variable_pattern_with_pin
-    assert_equal __, variable_pattern_with_pin(1)
+    assert_equal :no_match, variable_pattern_with_pin(1)
   end
 
   # ------------------------------------------------------------------
@@ -94,8 +94,8 @@ class AboutPatternMatching < Neo::Koan
   end
 
   def test_pattern_with_dropping
-    assert_equal __, pattern_with_dropping(['I will not be checked', 2])
-    assert_equal __, pattern_with_dropping(['I will not be checked', 'But I will!'])
+    assert_equal :match, pattern_with_dropping(['I will not be checked', 2])
+    assert_equal :no_match, pattern_with_dropping(['I will not be checked', 'But I will!'])
   end
 
   # ------------------------------------------------------------------
@@ -112,10 +112,10 @@ class AboutPatternMatching < Neo::Koan
   end
 
   def test_alternative_pattern
-    assert_equal __, alternative_pattern(0)
-    assert_equal __, alternative_pattern(false)
-    assert_equal __, alternative_pattern(nil)
-    assert_equal __, alternative_pattern(4)
+    assert_equal  :match, alternative_pattern(0)
+    assert_equal :match, alternative_pattern(false)
+    assert_equal :match, alternative_pattern(nil)
+    assert_equal :no_match, alternative_pattern(4)
   end
 
   # ------------------------------------------------------------------
@@ -127,7 +127,7 @@ class AboutPatternMatching < Neo::Koan
     a = 'First I was afraid'
 
     case 'I was petrified'
-    in String => a
+    in String => a # a перезаписывается
       a
     else
       :no_match
@@ -135,7 +135,7 @@ class AboutPatternMatching < Neo::Koan
   end
 
   def test_as_pattern
-    assert_equal __, as_pattern
+    assert_equal 'I was petrified', as_pattern
   end
 
   # ------------------------------------------------------------------
@@ -155,7 +155,7 @@ class AboutPatternMatching < Neo::Koan
 
   def array_pattern(deconstructible)
     case deconstructible
-    in 'a', *res, 'd'
+    in 'a', *res, 'd' #*res - элементы "посередине", a - первый, d - последний
       res
     else
       :no_match
@@ -163,8 +163,8 @@ class AboutPatternMatching < Neo::Koan
   end
 
   def test_array_pattern
-    assert_equal __, array_pattern(Deconstructible.new('abcd'))
-    assert_equal __, array_pattern(Deconstructible.new('123'))
+    assert_equal ["b","c"], array_pattern(Deconstructible.new('abcd'))
+    assert_equal :no_match, array_pattern(Deconstructible.new('123'))
   end
 
   # ------------------------------------------------------------------
@@ -185,7 +185,7 @@ class AboutPatternMatching < Neo::Koan
 
   def hash_pattern(deconstructible_as_hash)
     case deconstructible_as_hash
-    in {a: a, b: b}
+    in {a: a, b: b} # вызывает deconstruct_keys([:a,:b]) для объекта
       [a, b]
     else
       :no_match
@@ -193,8 +193,8 @@ class AboutPatternMatching < Neo::Koan
   end
 
   def test_hash_pattern
-    assert_equal __, hash_pattern(LetterAccountant.new('aaabbc'))
-    assert_equal __, hash_pattern(LetterAccountant.new('xyz'))
+    assert_equal [3,2], hash_pattern(LetterAccountant.new('aaabbc'))
+    assert_equal [0,0], hash_pattern(LetterAccountant.new('xyz'))
   end
 
   # we can write it even shorter
@@ -208,8 +208,8 @@ class AboutPatternMatching < Neo::Koan
   end
 
   def test_hash_pattern_with_sugar
-    assert_equal __, hash_pattern_with_sugar(LetterAccountant.new('aaabbc'))
-    assert_equal __, hash_pattern_with_sugar(LetterAccountant.new('xyz'))
+    assert_equal [3,2], hash_pattern_with_sugar(LetterAccountant.new('aaabbc'))
+    assert_equal [0,0], hash_pattern_with_sugar(LetterAccountant.new('xyz'))
   end
 
 end
